@@ -78,21 +78,20 @@
             z-index: 10;
         }
 
-        .confetti {
+        .tree {
             position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: #ff0;
-            animation: fall 3s linear infinite;
-            z-index: 1;
+            width: 30px;
+            height: 30px;
+            background: url('tree-icon.png') no-repeat center/contain;
+            animation: fall linear infinite;
         }
 
         @keyframes fall {
             0% {
-                transform: translateY(0) rotate(0deg);
+                transform: translateY(-10%) rotate(0deg);
             }
             100% {
-                transform: translateY(100vh) rotate(360deg);
+                transform: translateY(110vh) rotate(360deg);
             }
         }
     </style>
@@ -162,10 +161,11 @@
             }
         }
 
-        // Funkcja wyświetlająca wiadomość
+        // Funkcja wyświetlająca wiadomość i latające choinki
         function revealMessage() {
             canvas.style.display = 'none'; // Ukryj zdrapkę
             message.style.display = 'block'; // Pokaż wiadomość
+            createFallingTrees(); // Uruchom animację choinek
         }
 
         // Obsługa zdarzeń myszy
@@ -184,6 +184,22 @@
             ctx.fillStyle = '#888';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         });
+
+        // Funkcja tworzenia latających choinek
+        function createFallingTrees() {
+            for (let i = 0; i < 30; i++) {
+                const tree = document.createElement('div');
+                tree.classList.add('tree');
+                tree.style.left = `${Math.random() * 100}vw`;
+                tree.style.animationDuration = `${Math.random() * 3 + 2}s`;
+                document.body.appendChild(tree);
+
+                // Usuń choinki po zakończeniu animacji
+                tree.addEventListener('animationend', () => {
+                    tree.remove();
+                });
+            }
+        }
     </script>
 </body>
 </html>
