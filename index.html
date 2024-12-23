@@ -47,7 +47,7 @@
         }
     }
 
-    // Funkcja wyświetlająca wiadomość
+    // Funkcja wyświetlająca wiadomość i konfetti
     function revealMessage() {
         canvas.style.display = 'none'; // Ukryj zdrapkę
         message.style.display = 'block'; // Pokaż wiadomość
@@ -56,7 +56,7 @@
 
     // Funkcja generująca konfetti
     function generateConfetti() {
-        for (let i = 0; i < 50; i++) { // Adjusted the number of confetti pieces
+        for (let i = 0; i < 100; i++) { // Liczba konfetti
             const confetti = document.createElement('div');
             confetti.classList.add('confetti');
             confetti.style.backgroundColor = getRandomColor();
