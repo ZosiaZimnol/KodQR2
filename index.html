@@ -1,189 +1,96 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prezent dla Haneczki</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #e6f2e9;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            margin: 0;
-            overflow: hidden;
-            position: relative;
+<script>
+    const canvas = document.getElementById('scratchCanvas');
+    const ctx = canvas.getContext('2d');
+    const message = document.getElementById('message');
+    let isScratching = false;
+
+    // Ustawienia canvas
+    function resizeCanvas() {
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight;
+    }
+    resizeCanvas();
+
+    // Rysowanie warstwy zdrapki
+    ctx.fillStyle = '#888'; // Kolor szary dla zdrapki
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Funkcja zdrapywania
+    function scratch(e) {
+        if (!isScratching) return;
+
+        const rect = canvas.getBoundingClientRect();
+        const x = (e.clientX || e.touches[0].clientX) - rect.left;
+        const y = (e.clientY || e.touches[0].clientY) - rect.top;
+
+        ctx.globalCompositeOperation = 'destination-out'; // Usuwanie obszaru
+        ctx.beginPath();
+        ctx.arc(x, y, 15, 0, Math.PI * 2, false);
+        ctx.fill();
+
+        checkScratchCompletion();
+    }
+
+    // Funkcja sprawdzająca, czy zdrapano 70%
+    function checkScratchCompletion() {
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const pixels = imageData.data;
+        let transparentPixels = 0;
+
+        for (let i = 3; i < pixels.length; i += 4) {
+            if (pixels[i] === 0) transparentPixels++;
         }
 
-        .card {
-            background-color: white;
-            border-radius: 15px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            width: 400px;
-            padding: 20px;
-            text-align: center;
-            position: relative;
-            z-index: 5;
+        const scratchedPercentage = transparentPixels / (pixels.length / 4);
+        if (scratchedPercentage > 0.5) {
+            revealMessage();
         }
+    }
 
-        .scratch {
-            position: relative;
-            width: 100%;
-            height: 100px; 
-            margin: 20px 0;
-            overflow: hidden;
-            background-image: url('image/twaarz.jpg');
-            background-size: cover;
-            background-position: center;
+    // Funkcja wyświetlająca wiadomość
+    function revealMessage() {
+        canvas.style.display = 'none'; // Ukryj zdrapkę
+        message.style.display = 'block'; // Pokaż wiadomość
+        generateConfetti();
+    }
+
+    // Funkcja generująca konfetti
+    function generateConfetti() {
+        for (let i = 0; i < 50; i++) { // Adjusted the number of confetti pieces
+            const confetti = document.createElement('div');
+            confetti.classList.add('confetti');
+            confetti.style.backgroundColor = getRandomColor();
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.top = Math.random() * -100 + 'px';
+            confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
+            document.body.appendChild(confetti);
+
+            confetti.addEventListener('animationend', () => {
+                confetti.remove();
+            });
         }
+    }
 
-        .scratch canvas {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 2;
-            cursor: pointer;
-        }
+    // Funkcja generująca losowe kolory
+    function getRandomColor() {
+        const colors = ['#FF5733', '#33FF57', '#3357FF', '#FF33A6', '#FFFF33'];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
 
-        .hidden-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 20px;
-            font-weight: bold;
-            color: black;
-            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.8);
-            z-index: 1;
-            pointer-events: none;
-        }
+    // Obsługa zdarzeń myszy
+    canvas.addEventListener('mousedown', () => isScratching = true);
+    canvas.addEventListener('mouseup', () => isScratching = false);
+    canvas.addEventListener('mousemove', scratch);
 
-        .message {
-            display: none;
-            position: fixed;
-            top: 30%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-            font-size: 20px;
-            font-weight: bold;
-            text-align: center;
-            z-index: 10;
-        }
+    // Obsługa zdarzeń dotyku
+    canvas.addEventListener('touchstart', () => isScratching = true);
+    canvas.addEventListener('touchend', () => isScratching = false);
+    canvas.addEventListener('touchmove', scratch);
 
-        .confetti {
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            background-color: #ff0;
-            animation: fall 3s linear infinite;
-            z-index: 1;
-        }
-
-        @keyframes fall {
-            0% {
-                transform: translateY(0) rotate(0deg);
-            }
-            100% {
-                transform: translateY(100vh) rotate(360deg);
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="card">
-        <h2>🎄 Wesołych Świąt 🎄</h2>
-        <p>Zdrap zdrapkę, by odkryć niespodziankę!</p>
-
-        <div class="scratch">
-            <div class="hidden-text">12-etapowa pielęgnacja twarzy</div>
-            <canvas id="scratchCanvas"></canvas>
-        </div>
-    </div>
-
-    <div class="message" id="message">
-        🎁 Oto Twój prezent świąteczny! 🎁<br>
-        <a href="voucher.pdf" download>📥 Pobierz swój kupon tutaj</a>
-    </div>
-
-    <script>
-        const canvas = document.getElementById('scratchCanvas');
-        const ctx = canvas.getContext('2d');
-        const message = document.getElementById('message');
-        let isScratching = false;
-
-        // Ustawienia canvas
-        function resizeCanvas() {
-            canvas.width = canvas.offsetWidth;
-            canvas.height = canvas.offsetHeight;
-        }
+    // Dopasowanie canvas przy zmianie okna
+    window.addEventListener('resize', () => {
         resizeCanvas();
-
-        // Rysowanie warstwy zdrapki
-        ctx.fillStyle = '#888'; // Kolor szary dla zdrapki
+        ctx.fillStyle = '#888';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-        // Funkcja zdrapywania
-        function scratch(e) {
-            if (!isScratching) return;
-
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX || e.touches[0].clientX) - rect.left;
-            const y = (e.clientY || e.touches[0].clientY) - rect.top;
-
-            ctx.globalCompositeOperation = 'destination-out'; // Usuwanie obszaru
-            ctx.beginPath();
-            ctx.arc(x, y, 15, 0, Math.PI * 2, false);
-            ctx.fill();
-
-            checkScratchCompletion();
-        }
-
-        // Funkcja sprawdzająca, czy zdrapano 70%
-        function checkScratchCompletion() {
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            const pixels = imageData.data;
-            let transparentPixels = 0;
-
-            for (let i = 3; i < pixels.length; i += 4) {
-                if (pixels[i] === 0) transparentPixels++;
-            }
-
-            const scratchedPercentage = transparentPixels / (pixels.length / 4);
-            if (scratchedPercentage > 0.5) {
-                revealMessage();
-            }
-        }
-
-        // Funkcja wyświetlająca wiadomość
-        function revealMessage() {
-            canvas.style.display = 'none'; // Ukryj zdrapkę
-            message.style.display = 'block'; // Pokaż wiadomość
-        }
-
-        // Obsługa zdarzeń myszy
-        canvas.addEventListener('mousedown', () => isScratching = true);
-        canvas.addEventListener('mouseup', () => isScratching = false);
-        canvas.addEventListener('mousemove', scratch);
-
-        // Obsługa zdarzeń dotyku
-        canvas.addEventListener('touchstart', () => isScratching = true);
-        canvas.addEventListener('touchend', () => isScratching = false);
-        canvas.addEventListener('touchmove', scratch);
-
-        // Dopasowanie canvas przy zmianie okna
-        window.addEventListener('resize', () => {
-            resizeCanvas();
-            ctx.fillStyle = '#888';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        });
-    </script>
-</body>
-</html>
+    });
+</script>
